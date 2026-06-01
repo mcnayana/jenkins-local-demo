@@ -5,26 +5,19 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git branch: 'main',
-                url: 'https://github.com/mcnayana/jenkins-local-demo.git'
+                git branch: 'main', url: 'https://github.com/mcnayana/jenkins-local-demo.git'
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Install Dependencies') {
             steps {
-                bat 'docker build -t flask-demo .'
+                sh 'pip3 install -r requirements.txt'
             }
         }
 
-        stage('Remove Old Container') {
+        stage('Build / Run App') {
             steps {
-                bat 'docker rm -f flask-demo-container || exit 0'
-            }
-        }
-
-        stage('Deploy Container') {
-            steps {
-                bat 'docker run -d -p 5000:5000 --name flask-demo-container flask-demo'
+                sh 'python3 app.py'
             }
         }
     }
