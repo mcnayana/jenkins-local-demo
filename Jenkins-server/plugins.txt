@@ -1,0 +1,14 @@
+workflow-aggregator
+pipeline-stage-view
+git
+git-client
+github
+github-api
+github-branch-source
+credentials
+credentials-binding
+ssh-credentials
+plain-credentials
+scm-api
+branch-api
+docker-workflow
