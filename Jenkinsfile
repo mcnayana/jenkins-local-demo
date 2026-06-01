@@ -9,15 +9,15 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Build Docker Image') {
             steps {
-                sh 'pip3 install -r requirements.txt'
+                sh 'docker build -t flask-app .'
             }
         }
 
-        stage('Build / Run App') {
+        stage('Run Container') {
             steps {
-                sh 'python3 app.py'
+                sh 'docker run -d -p 5000:5000 --name flask-container flask-app || true'
             }
         }
     }
