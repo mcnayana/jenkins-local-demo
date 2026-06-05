@@ -28,12 +28,8 @@ pipeline {
         }
         failure {
             echo 'CI/CD Pipeline FAILED ❌'
+             sh 'python3 analyze_logs.py'
         }
     }
 
-    post {
-        failure {
-            sh 'python3 analyze_logs.py'
-        }
-    }
 }
