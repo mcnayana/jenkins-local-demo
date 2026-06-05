@@ -36,4 +36,10 @@ pipeline {
             echo 'CI/CD Pipeline FAILED ❌'
         }
     }
+
+    post {
+        failure {
+            sh 'python3 analyze_logs.py'
+        }
+    }
 }
