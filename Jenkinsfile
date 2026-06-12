@@ -1,41 +1,71 @@
 pipeline {
+
     agent any
+
+    environment {
+        IMAGE_NAME = "flask-app"
+        CONTAINER_NAME = "flask-container"
+    }
 
     stages {
 
-        stage('Checkout') {
+        stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/mcnayana/jenkins-local-demo.git'
+                git branch: 'main',
+                    url: 'https://github.com/mcnayana/jenkins-local-demo.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t flask-app .'
+                sh '''
+                docker build -t ${IMAGE_NAME} .
+                '''
             }
         }
 
         stage('Remove Old Container') {
             steps {
-                sh 'docker rm -f flask-container || true'
+                sh '''
+                docker rm -f ${CONTAINER_NAME} || true
+                '''
             }
         }
 
-        stage('Run Container') {
+        stage('Deploy Container') {
             steps {
-                sh 'docker run -d -p 5000:5000 --name flask-container flask-app || true'
+                sh '''
+                docker run -d \
+                -p 5000:5000 \
+                --name ${CONTAINER_NAME} \
+                ${IMAGE_NAME}
+                '''
             }
         }
     }
 
-     post {
+    post {
+
         success {
-            echo 'CI/CD Pipeline SUCCESS 🚀'
+            echo "======================================"
+            echo "Application deployed successfully."
+            echo "======================================"
         }
+
         failure {
-            echo 'CI/CD Pipeline FAILED ❌'
-             sh 'python3 analyze_logs.py'
+
+            echo "======================================"
+            echo "Pipeline Failed"
+            echo "Running AI Analyzer..."
+            echo "======================================"
+
+            sh '''
+            python3 ai_analyzer.py || true
+            '''
+        }
+
+        always {
+            echo "Pipeline execution completed."
         }
     }
-
 }
