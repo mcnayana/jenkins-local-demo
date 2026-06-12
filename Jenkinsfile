@@ -61,7 +61,6 @@ pipeline {
             echo "======================================"
 
             sh '''
-            pip3 install requests
             python3 ai_analyzer.py || true
             '''
         }
