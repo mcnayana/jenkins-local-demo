@@ -1,4 +1,3 @@
-```python
 import urllib.request
 import urllib.parse
 import json
@@ -94,4 +93,3 @@ print("AI FAILURE ANALYSIS REPORT")
 print("=" * 60)
 print(result.get("response", "No response"))
 print("=" * 60)
-```
