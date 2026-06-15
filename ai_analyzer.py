@@ -3,46 +3,40 @@ import glob
 import json
 import urllib.request
 
-# ============================================
-# Ollama Configuration
-# ============================================
+# ==========================================
+# Configuration
+# ==========================================
 
 OLLAMA_URL = "http://host.docker.internal:11434/api/generate"
 MODEL = "qwen2.5:1.5b"
 
-# ============================================
-# Jenkins Configuration
-# ============================================
-
 BUILD_DIR = "/var/jenkins_home/jobs/flask-ci-cd/builds"
 
-# ============================================
-# Find Latest Build Log
-# ============================================
+# ==========================================
+# Read Latest Jenkins Build Log
+# ==========================================
 
 try:
 
-    builds = []
+    build_dirs = []
 
     for folder in glob.glob(os.path.join(BUILD_DIR, "*")):
-        name = os.path.basename(folder)
+        if os.path.basename(folder).isdigit():
+            build_dirs.append(folder)
 
-        if name.isdigit():
-            builds.append(folder)
-
-    if len(builds) == 0:
+    if not build_dirs:
         print("No Jenkins builds found.")
         exit(1)
 
     latest_build = max(
-        builds,
+        build_dirs,
         key=lambda x: int(os.path.basename(x))
     )
 
     log_file = os.path.join(latest_build, "log")
 
     with open(log_file, "r", errors="ignore") as f:
-        logs = f.read()
+        full_log = f.read()
 
 except Exception as e:
 
@@ -50,32 +44,73 @@ except Exception as e:
     print(e)
     exit(1)
 
-# ============================================
-# Prompt for AI
-# ============================================
+# ==========================================
+# Extract Important Error Lines
+# ==========================================
+
+keywords = [
+    "ERROR",
+    "Error",
+    "error",
+    "FAILURE",
+    "FAILED",
+    "Failure",
+    "Exception",
+    "Traceback",
+    "ModuleNotFoundError",
+    "No such file",
+    "cannot",
+    "returned exit code",
+    "docker:",
+    "failed",
+    "Failed",
+    "script returned"
+]
+
+important_lines = []
+
+for line in full_log.splitlines():
+
+    for keyword in keywords:
+
+        if keyword in line:
+            important_lines.append(line)
+            break
+
+if important_lines:
+    log = "\n".join(important_lines)
+else:
+    # fallback: use last 100 lines
+    log = "\n".join(full_log.splitlines()[-100:])
+
+# ==========================================
+# Build Prompt
+# ==========================================
 
 prompt = f"""
 You are a Senior DevOps Engineer.
 
-Analyze the Jenkins pipeline log below.
+Analyze the Jenkins failure log.
 
-Return ONLY in this format.
+Return ONLY in the following format.
 
 Root Cause:
-<answer>
+<one concise sentence>
 
 Responsible Team:
-<answer>
+<one team only>
 
 Suggested Fix:
-<answer>
+<clear fix>
 
 Severity:
 <Low/Medium/High>
 
-Jenkins Log:
+Do not provide introductions, explanations, or extra text.
 
-{logs}
+Jenkins Error Log:
+
+{log}
 """
 
 payload = json.dumps({
@@ -93,9 +128,9 @@ request = urllib.request.Request(
     method="POST"
 )
 
-# ============================================
+# ==========================================
 # Call Ollama
-# ============================================
+# ==========================================
 
 try:
 
