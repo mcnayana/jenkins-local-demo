@@ -23,7 +23,7 @@ pipeline {
                 docker build -t ${IMAGE_NAME} .
                 
                 # Force failure for demo
-                exit 1
+                false
                 '''
             }
         }
