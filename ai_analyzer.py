@@ -12,8 +12,8 @@ import sys
 JENKINS_URL = "http://localhost:8080"
 JOB_NAME = "flask-ci-cd"
 
-USERNAME = "YOUR_USERNAME"
-API_TOKEN = "YOUR_NEW_API_TOKEN"
+USERNAME = "nayanamc"
+API_TOKEN = "7188e56cee5081c38f1bd74046df20f8"
 
 # ==========================
 # Ollama Configuration
