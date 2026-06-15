@@ -20,10 +20,8 @@ pipeline {
             steps {
 
                 sh '''
-                docker build -t ${IMAGE_NAME} .
+                docker build -f Dockerfile123 -t ${IMAGE_NAME} .
                 
-                # Force failure for demo
-                false
                 '''
             }
         }
@@ -49,7 +47,7 @@ pipeline {
         failure {
 
             echo "===================================="
-            echo "🤖 AI FAILURE ANALYSIS"
+            echo "AI FAILURE ANALYSIS"
             echo "===================================="
 
             sh '''
