@@ -3,39 +3,35 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "flask-app"
-        CONTAINER_NAME = "flask-container"
+        IMAGE_NAME="flask-app"
+        CONTAINER_NAME="flask-container"
     }
 
     stages {
 
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/mcnayana/jenkins-local-demo.git'
+                url: 'https://github.com/mcnayana/jenkins-local-demo.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
+
                 sh '''
                 docker build -t ${IMAGE_NAME} .
-                sh 'exit 1'
+
                 '''
             }
         }
 
-        stage('Remove Old Container') {
+        stage('Deploy') {
             steps {
+
                 sh '''
                 docker rm -f ${CONTAINER_NAME} || true
-                '''
-            }
-        }
 
-        stage('Deploy Container') {
-            steps {
-                sh '''
                 docker run -d \
                 -p 5000:5000 \
                 --name ${CONTAINER_NAME} \
@@ -43,30 +39,34 @@ pipeline {
                 '''
             }
         }
+
     }
 
     post {
 
-        success {
-            echo "======================================"
-            echo "Application deployed successfully."
-            echo "======================================"
-        }
-
         failure {
 
-            echo "======================================"
-            echo "Pipeline Failed"
-            echo "Running AI Analyzer..."
-            echo "======================================"
+            echo "===================================="
+            echo "🤖 AI FAILURE ANALYSIS"
+            echo "===================================="
 
             sh '''
             python3 ai_analyzer.py || true
             '''
         }
 
-        always {
-            echo "Pipeline execution completed."
+        success {
+
+            echo "Application deployed successfully."
+
         }
+
+        always {
+
+            echo "Pipeline execution completed."
+
+        }
+
     }
+
 }
