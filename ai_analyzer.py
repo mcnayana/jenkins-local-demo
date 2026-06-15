@@ -142,7 +142,7 @@ try:
 
     print()
     print("====================================================")
-    print("           🤖 AI FAILURE ANALYSIS REPORT")
+    print("            AI FAILURE ANALYSIS REPORT")
     print("====================================================")
     print()
 
