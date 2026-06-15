@@ -1,74 +1,64 @@
-import requests
+```python
+import urllib.request
+import urllib.parse
+import json
+import base64
 import sys
 
-# =====================================================
+# ==========================
 # Jenkins Configuration
-# =====================================================
+# ==========================
 
 JENKINS_URL = "http://localhost:8080"
 JOB_NAME = "flask-ci-cd"
 
-USERNAME = "nayanamc"
-API_TOKEN = "7188e56cee5081c38f1bd74046df20f8"
+USERNAME = "YOUR_USERNAME"
+API_TOKEN = "YOUR_NEW_API_TOKEN"
 
-# =====================================================
+# ==========================
 # Ollama Configuration
-# =====================================================
+# ==========================
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
 MODEL_NAME = "qwen2.5:1.5b"
 
-# =====================================================
-# Fetch Latest Jenkins Console Log
-# =====================================================
+# ==========================
+# Fetch Jenkins Console Log
+# ==========================
 
 console_url = f"{JENKINS_URL}/job/{JOB_NAME}/lastBuild/consoleText"
 
+credentials = f"{USERNAME}:{API_TOKEN}"
+encoded_credentials = base64.b64encode(credentials.encode()).decode()
+
+req = urllib.request.Request(console_url)
+req.add_header("Authorization", f"Basic {encoded_credentials}")
+
 try:
-    response = requests.get(
-        console_url,
-        auth=(USERNAME, API_TOKEN),
-        timeout=60
-    )
+    with urllib.request.urlopen(req, timeout=60) as response:
+        logs = response.read().decode("utf-8")
 except Exception as e:
-    print("\nERROR: Unable to connect to Jenkins")
+    print("ERROR: Unable to fetch Jenkins logs")
     print(e)
     sys.exit(1)
 
-if response.status_code != 200:
-    print("\nERROR: Failed to fetch Jenkins console log")
-    print("Status Code:", response.status_code)
-    print(response.text)
-    sys.exit(1)
-
-logs = response.text
-
-print("\n========================================")
-print("Fetched Latest Jenkins Console Log")
-print("========================================\n")
-
-# =====================================================
-# Prompt for Ollama
-# =====================================================
+# ==========================
+# Prompt
+# ==========================
 
 prompt = f"""
-You are an experienced DevOps support engineer.
+You are an experienced DevOps engineer.
 
-Analyze the Jenkins build log below.
+Analyze the following Jenkins build log.
+
+Do not invent technologies that are not present.
 
 Return ONLY in this format:
 
 Root Cause:
-<answer>
-
 Responsible Team:
-<answer>
-
 Suggested Fix:
-<answer>
-
 Severity:
-<Low/Medium/High>
 
 Build Log:
 
@@ -81,31 +71,27 @@ payload = {
     "stream": False
 }
 
+data = json.dumps(payload).encode("utf-8")
+
+request = urllib.request.Request(
+    OLLAMA_URL,
+    data=data,
+    headers={"Content-Type": "application/json"},
+    method="POST"
+)
+
 try:
-    ai_response = requests.post(
-        OLLAMA_URL,
-        json=payload,
-        timeout=300
-    )
+    with urllib.request.urlopen(request, timeout=300) as response:
+        result = json.loads(response.read().decode("utf-8"))
 except Exception as e:
-    print("\nERROR: Unable to connect to Ollama")
+    print("ERROR: Unable to connect to Ollama")
     print(e)
     sys.exit(1)
 
-if ai_response.status_code != 200:
-    print("\nERROR: Ollama API failed")
-    print(ai_response.text)
-    sys.exit(1)
-
-result = ai_response.json().get("response", "No response received.")
-
-# =====================================================
-# Print AI Report
-# =====================================================
-
 print("\n")
 print("=" * 60)
-print("           AI FAILURE ANALYSIS REPORT")
+print("AI FAILURE ANALYSIS REPORT")
 print("=" * 60)
-print(result)
+print(result.get("response", "No response"))
 print("=" * 60)
+```
