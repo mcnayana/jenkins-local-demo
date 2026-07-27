@@ -59,12 +59,20 @@ keywords = [
     "Traceback",
     "ModuleNotFoundError",
     "No such file",
-    "cannot",
+    "No module named",
+    "Permission denied",
+    "permission denied",
     "returned exit code",
     "docker:",
     "failed",
     "Failed",
-    "script returned"
+    "cannot",
+    "script returned",
+    "Connection refused",
+    "port is already allocated",
+    "Address already in use",
+    "unable to",
+    "not found"
 ]
 
 important_lines = []
@@ -73,42 +81,102 @@ for line in full_log.splitlines():
 
     for keyword in keywords:
 
-        if keyword in line:
+        if keyword.lower() in line.lower():
             important_lines.append(line)
             break
 
 if important_lines:
     log = "\n".join(important_lines)
 else:
-    # fallback: use last 100 lines
     log = "\n".join(full_log.splitlines()[-100:])
 
 # ==========================================
-# Build Prompt
+# AI Prompt
 # ==========================================
 
 prompt = f"""
-You are a Senior DevOps Engineer.
+You are an AI Support Engineer working for a production support team.
 
-Analyze the Jenkins failure log.
+Your task is to analyze the Jenkins build failure log.
 
-Return ONLY in the following format.
+You MUST classify the issue into ONLY ONE of the following support teams.
+
+1. DevOps Team
+2. Middleware Team
+3. Unix Team
+
+Classification Rules
+
+DevOps Team:
+- Jenkins pipeline failures
+- Jenkinsfile errors
+- Git/GitHub issues
+- Docker build failures
+- Docker image issues
+- Docker compose issues
+- CI/CD failures
+- Python dependency issues
+- Build failures
+- Deployment failures
+- Kubernetes issues
+- Helm issues
+
+Middleware Team:
+- Tomcat
+- WebLogic
+- WebSphere
+- JBoss
+- Java application errors
+- Spring Boot startup issues
+- REST API failures
+- HTTP 404
+- HTTP 500
+- Application deployment issues
+- Database connectivity
+- Application configuration issues
+
+Unix Team:
+- Linux permission denied
+- Disk full
+- Memory issues
+- CPU utilization
+- Port already in use
+- File system issues
+- Service not running
+- Process failures
+- Shell script failures
+- OS command failures
+
+Instructions
+
+1. Read the Jenkins log carefully.
+2. Identify the actual root cause.
+3. Choose ONLY ONE responsible team.
+4. Do not guess multiple teams.
+5. Return ONLY the format below.
+6. Do not add explanations.
+
+Output Format
+
+Pipeline Status:
+FAILED
 
 Root Cause:
 <one concise sentence>
 
 Responsible Team:
-<one team only>
+<DevOps Team OR Middleware Team OR Unix Team>
 
 Suggested Fix:
-<clear fix>
+<step-by-step solution>
 
 Severity:
 <Low/Medium/High>
 
-Do not provide introductions, explanations, or extra text.
+Confidence:
+<0-100%>
 
-Jenkins Error Log:
+Jenkins Error Log
 
 {log}
 """
@@ -141,15 +209,15 @@ try:
     )
 
     print()
-    print("====================================================")
-    print("            AI FAILURE ANALYSIS REPORT")
-    print("====================================================")
+    print("============================================================")
+    print("              AI FAILURE ANALYSIS REPORT")
+    print("============================================================")
     print()
 
     print(result.get("response", "No response received."))
 
     print()
-    print("====================================================")
+    print("============================================================")
 
 except Exception as e:
 
