@@ -20,7 +20,7 @@ pipeline {
             steps {
 
                 sh '''
-                docker build -f Dockerfile123 -t ${IMAGE_NAME} .
+                docker build -f Dockerfile -t ${IMAGE_NAME} .
                 
                 '''
             }
